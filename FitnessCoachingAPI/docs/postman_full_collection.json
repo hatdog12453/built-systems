@@ -1,0 +1,345 @@
+{
+  "info": {
+    "name": "Fitness Coaching API - Full",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "fitness-coaching-api-full"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000" },
+    { "key": "token", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "user_role", "value": "" },
+    { "key": "user_email", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-login if no token exists and we're not already in an auth request",
+          "const currentUrl = pm.request.url.toString();",
+          "const isAuthRequest = currentUrl.includes('/auth/');",
+          "const hasToken = pm.collectionVariables.get('token');",
+          "",
+          "if (!hasToken && !isAuthRequest) {",
+          "    console.log('🔑 No token found, you may need to login first');",
+          "    console.log('💡 Tip: Run any login request to automatically get a token');",
+          "} else if (hasToken) {",
+          "    console.log('✅ Token found:', pm.collectionVariables.get('token').substring(0, 20) + '...');",
+          "    console.log('👤 User Role:', pm.collectionVariables.get('user_role'));",
+          "    console.log('📧 User Email:', pm.collectionVariables.get('user_email'));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register - Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/admin/register", "host": ["{{baseUrl}}"], "path": ["api","auth","admin","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Super Admin\",\n  \"email\": \"admin2@example.com\",\n  \"password\": \"password\",\n  \"security_question\": \"What's your mother's maiden name?\",\n  \"security_answer\": \"Smith\"\n}" }
+          }
+        },
+        {
+          "name": "Login - Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/admin/login", "host": ["{{baseUrl}}"], "path": ["api","auth","admin","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test if login was successful",
+                  "pm.test(\"Admin login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Extract and save token automatically",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.token) {",
+                  "        // Save to collection variables (primary)",
+                  "        pm.collectionVariables.set('token', responseJson.token);",
+                  "        pm.collectionVariables.set('user_id', responseJson.user.id);",
+                  "        pm.collectionVariables.set('user_role', 'admin');",
+                  "        pm.collectionVariables.set('user_email', responseJson.user.email);",
+                  "        ",
+                  "        // Also save to environment variables as backup",
+                  "        pm.environment.set('auth_token', responseJson.token);",
+                  "        pm.environment.set('user_id', responseJson.user.id);",
+                  "        pm.environment.set('user_role', 'admin');",
+                  "        pm.environment.set('user_email', responseJson.user.email);",
+                  "        ",
+                  "        console.log('✅ Admin token saved successfully');",
+                  "        console.log('Token:', responseJson.token);",
+                  "        console.log('User ID:', responseJson.user.id);",
+                  "        console.log('User Email:', responseJson.user.email);",
+                  "        console.log('Role: Admin');",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Admin login failed - no token saved');",
+                  "    console.log('Response:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Coach",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/coach/login", "host": ["{{baseUrl}}"], "path": ["api","auth","coach","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"coach@example.com\",\n  \"password\": \"password\"\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test if login was successful",
+                  "pm.test(\"Coach login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Extract and save token automatically",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.token) {",
+                  "        // Save to collection variables (primary)",
+                  "        pm.collectionVariables.set('token', responseJson.token);",
+                  "        pm.collectionVariables.set('user_id', responseJson.user.id);",
+                  "        pm.collectionVariables.set('user_role', 'coach');",
+                  "        pm.collectionVariables.set('user_email', responseJson.user.email);",
+                  "        ",
+                  "        // Also save to environment variables as backup",
+                  "        pm.environment.set('auth_token', responseJson.token);",
+                  "        pm.environment.set('user_id', responseJson.user.id);",
+                  "        pm.environment.set('user_role', 'coach');",
+                  "        pm.environment.set('user_email', responseJson.user.email);",
+                  "        ",
+                  "        console.log('✅ Coach token saved successfully');",
+                  "        console.log('Token:', responseJson.token);",
+                  "        console.log('User ID:', responseJson.user.id);",
+                  "        console.log('User Email:', responseJson.user.email);",
+                  "        console.log('Role: Coach');",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Coach login failed - no token saved');",
+                  "    console.log('Response:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Client",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/client/login", "host": ["{{baseUrl}}"], "path": ["api","auth","client","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"client@example.com\",\n  \"password\": \"password\"\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test if login was successful",
+                  "pm.test(\"Client login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Extract and save token automatically",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.token) {",
+                  "        // Save to collection variables (primary)",
+                  "        pm.collectionVariables.set('token', responseJson.token);",
+                  "        pm.collectionVariables.set('user_id', responseJson.user.id);",
+                  "        pm.collectionVariables.set('user_role', 'client');",
+                  "        pm.collectionVariables.set('user_email', responseJson.user.email);",
+                  "        ",
+                  "        // Also save to environment variables as backup",
+                  "        pm.environment.set('auth_token', responseJson.token);",
+                  "        pm.environment.set('user_id', responseJson.user.id);",
+                  "        pm.environment.set('user_role', 'client');",
+                  "        pm.environment.set('user_email', responseJson.user.email);",
+                  "        ",
+                  "        console.log('✅ Client token saved successfully');",
+                  "        console.log('Token:', responseJson.token);",
+                  "        console.log('User ID:', responseJson.user.id);",
+                  "        console.log('User Email:', responseJson.user.email);",
+                  "        console.log('Role: Client');",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Client login failed - no token saved');",
+                  "    console.log('Response:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api","auth","logout"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test if logout was successful",
+                  "pm.test(\"Logout successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Clear all authentication data",
+                  "pm.collectionVariables.set('token', '');",
+                  "pm.collectionVariables.set('user_id', '');",
+                  "pm.collectionVariables.set('user_role', '');",
+                  "pm.collectionVariables.set('user_email', '');",
+                  "",
+                  "// Also clear environment variables",
+                  "pm.environment.set('auth_token', '');",
+                  "pm.environment.set('user_id', '');",
+                  "pm.environment.set('user_role', '');",
+                  "pm.environment.set('user_email', '');",
+                  "",
+                  "console.log('✅ Logout successful - all tokens cleared');",
+                  "console.log('🔑 You will need to login again for protected endpoints');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admins (admin only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/admins","host":["{{baseUrl}}"],"path":["api","admins"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/admins","host":["{{baseUrl}}"],"path":["api","admins"]},"body":{"mode":"raw","raw":"{\n  \"full_name\": \"New Admin\",\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"secret123\",\n  \"security_question\": \"What's your mother's maiden name?\",\n  \"security_answer\": \"Smith\"\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/admins/1","host":["{{baseUrl}}"],"path":["api","admins","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/admins/1","host":["{{baseUrl}}"],"path":["api","admins","1"]},"body":{"mode":"raw","raw":"{\n  \"full_name\": \"Updated Admin\",\n  \"security_question\": \"Updated question\",\n  \"security_answer\": \"Updated answer\"\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/admins/1","host":["{{baseUrl}}"],"path":["api","admins","1"]}}}
+      ]
+    },
+    {
+      "name": "Coaches (admin only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/coaches","host":["{{baseUrl}}"],"path":["api","coaches"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/coaches","host":["{{baseUrl}}"],"path":["api","coaches"]},"body":{"mode":"raw","raw":"{\n  \"full_name\": \"Jane Coach\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"secret123\",\n  \"security_question\": \"What's your favorite color?\",\n  \"security_answer\": \"Blue\",\n  \"quotes\": \"Push limits\"\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/coaches/1","host":["{{baseUrl}}"],"path":["api","coaches","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/coaches/1","host":["{{baseUrl}}"],"path":["api","coaches","1"]},"body":{"mode":"raw","raw":"{\n  \"quotes\": \"Updated quote\",\n  \"security_question\": \"Updated question\",\n  \"security_answer\": \"Updated answer\"\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/coaches/1","host":["{{baseUrl}}"],"path":["api","coaches","1"]}}}
+      ]
+    },
+    {
+      "name": "Clients (admin only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/clients","host":["{{baseUrl}}"],"path":["api","clients"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/clients","host":["{{baseUrl}}"],"path":["api","clients"]},"body":{"mode":"raw","raw":"{\n  \"coach_id\": 1,\n  \"full_name\": \"John Client\",\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\",\n  \"security_question\": \"What city were you born in?\",\n  \"security_answer\": \"New York\",\n  \"height\": 175,\n  \"weight\": 72,\n  \"subscription_type\": \"monthly\"\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/clients/1","host":["{{baseUrl}}"],"path":["api","clients","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/clients/1","host":["{{baseUrl}}"],"path":["api","clients","1"]},"body":{"mode":"raw","raw":"{\n  \"status\": \"active\",\n  \"security_question\": \"Updated question\",\n  \"security_answer\": \"Updated answer\"\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/clients/1","host":["{{baseUrl}}"],"path":["api","clients","1"]}}}
+      ]
+    },
+    {
+      "name": "Payments (admin only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/payments","host":["{{baseUrl}}"],"path":["api","payments"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/payments","host":["{{baseUrl}}"],"path":["api","payments"]},"body":{"mode":"raw","raw":"{\n  \"client_id\": 1,\n  \"amount\": 49.99,\n  \"payment_date\": \"2025-10-28\",\n  \"method\": \"credit_card\",\n  \"status\": \"paid\"\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/payments/1","host":["{{baseUrl}}"],"path":["api","payments","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/payments/1","host":["{{baseUrl}}"],"path":["api","payments","1"]},"body":{"mode":"raw","raw":"{\n  \"status\": \"paid\"\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/payments/1","host":["{{baseUrl}}"],"path":["api","payments","1"]}}}
+      ]
+    },
+    {
+      "name": "Coach scope (coach only)",
+      "item": [
+        {"name":"List my clients","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/coach/clients","host":["{{baseUrl}}"],"path":["api","coach","clients"]}}}
+      ]
+    },
+    {
+      "name": "Meal Plans (coach only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/meal-plans","host":["{{baseUrl}}"],"path":["api","meal-plans"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/meal-plans","host":["{{baseUrl}}"],"path":["api","meal-plans"]},"body":{"mode":"raw","raw":"{\n  \"client_id\": 1,\n  \"notes\": \"High protein\",\n  \"protein\": 140,\n  \"carbs\": 180,\n  \"fats\": 50\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/meal-plans/1","host":["{{baseUrl}}"],"path":["api","meal-plans","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/meal-plans/1","host":["{{baseUrl}}"],"path":["api","meal-plans","1"]},"body":{"mode":"raw","raw":"{\n  \"protein\": 150\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/meal-plans/1","host":["{{baseUrl}}"],"path":["api","meal-plans","1"]}}}
+      ]
+    },
+    {
+      "name": "Session Plans (coach only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/session-plans","host":["{{baseUrl}}"],"path":["api","session-plans"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/session-plans","host":["{{baseUrl}}"],"path":["api","session-plans"]},"body":{"mode":"raw","raw":"{\n  \"client_id\": 1,\n  \"title\": \"Week 1 Plan\",\n  \"description\": \"Full body\",\n  \"duration\": 60\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/session-plans/1","host":["{{baseUrl}}"],"path":["api","session-plans","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/session-plans/1","host":["{{baseUrl}}"],"path":["api","session-plans","1"]},"body":{"mode":"raw","raw":"{\n  \"duration\": 75\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/session-plans/1","host":["{{baseUrl}}"],"path":["api","session-plans","1"]}}}
+      ]
+    },
+    {
+      "name": "Progress Trackers (coach only)",
+      "item": [
+        {"name":"Index","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/progress-trackers","host":["{{baseUrl}}"],"path":["api","progress-trackers"]}}},
+        {"name":"Store","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/progress-trackers","host":["{{baseUrl}}"],"path":["api","progress-trackers"]},"body":{"mode":"raw","raw":"{\n  \"client_id\": 1,\n  \"weight_progress\": 70.0,\n  \"remarks\": \"Starting\"\n}"}}},
+        {"name":"Show","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/progress-trackers/1","host":["{{baseUrl}}"],"path":["api","progress-trackers","1"]}}},
+        {"name":"Update","request":{"method":"PUT","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/progress-trackers/1","host":["{{baseUrl}}"],"path":["api","progress-trackers","1"]},"body":{"mode":"raw","raw":"{\n  \"weight_progress\": 69.5\n}"}}},
+        {"name":"Destroy","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/progress-trackers/1","host":["{{baseUrl}}"],"path":["api","progress-trackers","1"]}}}
+      ]
+    },
+    {
+      "name": "Client scope (client only)",
+      "item": [
+        {"name":"Me","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/me","host":["{{baseUrl}}"],"path":["api","me"]}}}
+      ]
+    }
+  ]
+}
+
+
